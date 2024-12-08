@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find the Snowflake</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: #87CEEB; /* Sky blue */
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #girl {
+            font-size: 5rem;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .snowflake {
+            font-size: 2rem;
+            position: absolute;
+            animation: fall linear;
+            cursor: pointer;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-150vh); /* Start far above the screen */
+            }
+            100% {
+                transform: translateY(100vh); /* Fall to the bottom */
+            }
+        }
+
+        #score-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 1.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #d9534f;
+            font-weight: bold;
+            font-size: 2rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="score-display">Score: <span id="score">0</span></div>
+    <div id="message">You Got Infected By Anvi Patani Chicken Biriyani!</div>
+    <div id="game-container">
+        <div id="girl">👧</div>
+    </div>
+    <script>
+        const gameContainer = document.getElementById("game-container");
+        const girl = document.getElementById("girl");
+        const scoreDisplay = document.getElementById("score");
+        const messageDisplay = document.getElementById("message");
+
+        let score = 0;
+        const moveSpeed = 20; // Pixels per key press
+
+        // Initial girl position
+        let girlX = window.innerWidth / 2 - 40; // Center horizontally
+        let girlY = window.innerHeight - 100; // Near bottom
+        girl.style.left = `${girlX}px`;
+        girl.style.top = `${girlY}px`;
+
+        // Move the girl with WASD keys
+        document.addEventListener("keydown", (e) => {
+            switch (e.key.toLowerCase()) {
+                case "w": // Move up
+                    girlY = Math.max(0, girlY - moveSpeed);
+                    break;
+                case "a": // Move left
+                    girlX = Math.max(0, girlX - moveSpeed);
+                    break;
+                case "s": // Move down
+                    girlY = Math.min(window.innerHeight - 100, girlY + moveSpeed);
+                    break;
+                case "d": // Move right
+                    girlX = Math.min(window.innerWidth - 40, girlX + moveSpeed);
+                    break;
+            }
+            girl.style.left = `${girlX}px`;
+            girl.style.top = `${girlY}px`;
+        });
+
+        // Function to detect collision
+        function isColliding(snowflake) {
+            const girlRect = girl.getBoundingClientRect();
+            const snowflakeRect = snowflake.getBoundingClientRect();
+
+            return !(
+                girlRect.top > snowflakeRect.bottom ||
+                girlRect.bottom < snowflakeRect.top ||
+                girlRect.right < snowflakeRect.left ||
+                girlRect.left > snowflakeRect.right
+            );
+        }
+
+        // Function to generate snowflakes
+        function generateSnowflake() {
+            const snowflake = document.createElement("div");
+            snowflake.classList.add("snowflake");
+            snowflake.textContent = "❄️";
+
+            // Set random horizontal position
+            const xPosition = Math.random() * window.innerWidth;
+            snowflake.style.left = `${xPosition}px`;
+
+            // Set slower animation duration
+            const duration = Math.random() * 5 + 3; // Between 3 and 8 seconds
+            snowflake.style.animationDuration = `${duration}s`;
+
+            // Check for collision on each frame
+            const checkCollisionInterval = setInterval(() => {
+                if (isColliding(snowflake)) {
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    snowflake.remove();
+                    clearInterval(checkCollisionInterval);
+
+                    // Check if the score reaches 20
+                    if (score >= 20) {
+                        messageDisplay.style.display = "block";
+                        clearInterval(snowflakeInterval);
+                    }
+                }
+            }, 50);
+
+            // Add click event listener
+            snowflake.addEventListener("click", () => {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                snowflake.remove();
+                clearInterval(checkCollisionInterval);
+
+                // Check if the score reaches 20
+                if (score >= 20) {
+                    messageDisplay.style.display = "block";
+                    clearInterval(snowflakeInterval);
+                }
+            });
+
+            // Remove snowflake after animation ends
+            snowflake.addEventListener("animationend", () => {
+                snowflake.remove();
+                clearInterval(checkCollisionInterval);
+            });
+
+            gameContainer.appendChild(snowflake);
+        }
+
+        // Generate snowflakes at regular intervals
+        const snowflakeInterval = setInterval(generateSnowflake, 800);
+    </script>
+</body>
+</html>
+
